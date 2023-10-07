@@ -51,6 +51,18 @@ app.post("/register", async (req, res) => {
   }
 });
 
+//global error handler
+app.use((err, req, res, next) => {
+  const defaultErr = {
+    log: "Express error handler caught unknown middleware error",
+    status: 500,
+    message: { err: "An error occurred" },
+  };
+  const errorObj = Object.assign(defaultErr, err);
+  console.log(errorObj.log);
+  res.status(errorObj.status).send(errorObj.message);
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -85,7 +85,7 @@ app.get('/search', async (req, res) => {
   // console.log('query:', req.query);
   const interestArr = [preference1, preference2, preference3];
 
-  const output = new Set();
+  const output = []
   try {
     const usersWithInterests = await pool.query(
       'SELECT users.username, personal_interests.interest FROM users JOIN personal_interests ON users.id = personal_interests.user_id WHERE personal_interests.interest = $1',
@@ -103,24 +103,44 @@ app.get('/search', async (req, res) => {
     // console.log("THREE",usersWithInterests3.rows)
 
     for (let i = 0; i < usersWithInterests.rows.length; i++) {
-      output.add(usersWithInterests.rows[i]);
+      output.push(usersWithInterests.rows[i]);
     }
-    // console.log(output);
+    console.log(output);
     for (let i = 0; i < usersWithInterests2.rows.length; i++) {
-      output.add(usersWithInterests2.rows[i]);
+     output.push(usersWithInterests2.rows[i]);
     }
-    // console.log('2nd out', output);
+    console.log('2nd out', output);
     for (let i = 0; i < usersWithInterests3.rows.length; i++) {
-      output.add(usersWithInterests3.rows[i]);
+      output.push(usersWithInterests3.rows[i]);
     }
-    // console.log('3rd out', output);
-    console.log('hi');
+    console.log('3rd out', output);
+  
+  const newOutput = [];
+
+  for (obj of output) {
+
+    let empty = true;
+    for (newobj of newOutput) {
+       if (obj.username == newobj.username) { empty = false; }
+    }
+    if (empty) {
+        newOutput.push({username: obj.username, interest: obj.interest});
+    } else {
+        for (newobj of newOutput) {
+           if (newobj.username == obj.username) {
+               for (int of obj.interest) {
+                 newobj.interest += `,` + int;
+                }
+           }  
+        }
+    }
+}
+ console.log("NEWOUTPT = " , newOutput)
+
     if (output.length === 0) {
       return res.status(404).json({ message: 'No users found' });
     } else {
-      const arr = Array.from(output);
-      console.log('hello');
-      fs.writeFileSync('./server/public/storage.txt', JSON.stringify(arr));
+      fs.writeFileSync('./server/public/storage.txt', JSON.stringify(output));
       res.redirect('http://localhost:8080/');
     }
   } catch (error) {
